@@ -1,0 +1,73 @@
+---
+
+  - set_fact:
+      ALPINE_GLIBC_BASE_URL: "https://github.com/sgerrand/alpine-pkg-glibc/releases/download"
+      ALPINE_GLIBC_PACKAGE_VERSION: "{{glibc_version}}"
+
+  - set_fact:
+      ALPINE_GLIBC_BASE_URL: "https://github.com/sgerrand/alpine-pkg-glibc/releases/download"
+      ALPINE_GLIBC_BASE_PACKAGE_FILENAME: "glibc-{{ALPINE_GLIBC_PACKAGE_VERSION}}.apk"
+      ALPINE_GLIBC_BIN_PACKAGE_FILENAME: "glibc-bin-{{ALPINE_GLIBC_PACKAGE_VERSION}}.apk"
+      ALPINE_GLIBC_I18N_PACKAGE_FILENAME: "glibc-i18n-{{ALPINE_GLIBC_PACKAGE_VERSION}}.apk"
+
+
+  - name: Alpine | Install GLIBC | Step 1
+    shell: apk add --no-cache --virtual=.build-dependencies wget ca-certificates
+
+  - name: Alpine | Install GLIBC | Step 2
+    get_url:
+      url: https://raw.githubusercontent.com/andyshinn/alpine-pkg-glibc/master/sgerrand.rsa.pub
+      dest: /etc/apk/keys/sgerrand.rsa.pub
+      validate_certs: "{{option_validate_certs}}"
+
+  - name: Alpine | Install GLIBC | Step 3
+    get_url:
+      url: "{{ALPINE_GLIBC_BASE_URL}}/{{ALPINE_GLIBC_PACKAGE_VERSION}}/{{ALPINE_GLIBC_BASE_PACKAGE_FILENAME}}"
+      dest: "/tmp/{{ALPINE_GLIBC_BASE_PACKAGE_FILENAME}}"
+      validate_certs: "{{option_validate_certs}}"
+
+  - name: Alpine | Install GLIBC | Step 4
+    shell: apk add --no-cache "/tmp/{{ALPINE_GLIBC_BASE_PACKAGE_FILENAME}}"
+
+  - name: Alpine | Install GLIBC | Step 5
+    get_url:
+      url: "{{ALPINE_GLIBC_BASE_URL}}/{{ALPINE_GLIBC_PACKAGE_VERSION}}/{{ALPINE_GLIBC_BIN_PACKAGE_FILENAME}}"
+      dest: "/tmp/{{ALPINE_GLIBC_BIN_PACKAGE_FILENAME}}"
+      validate_certs: "{{option_validate_certs}}"
+
+  - name: Alpine | Install GLIBC | Step 6
+    shell: apk add --no-cache "/tmp/{{ALPINE_GLIBC_BIN_PACKAGE_FILENAME}}"
+
+  - name: Alpine | Install GLIBC | Step 7
+    get_url:
+      url: "{{ALPINE_GLIBC_BASE_URL}}/{{ALPINE_GLIBC_PACKAGE_VERSION}}/{{ALPINE_GLIBC_I18N_PACKAGE_FILENAME}}"
+      dest: "/tmp/{{ALPINE_GLIBC_I18N_PACKAGE_FILENAME}}"
+      validate_certs: "{{option_validate_certs}}"
+
+  - name: Alpine | Install GLIBC | Step 8
+    shell: apk add --no-cache "/tmp/{{ALPINE_GLIBC_I18N_PACKAGE_FILENAME}}"
+
+  - name: Alpine | Install GLIBC | Step 9
+    file: path="/etc/apk/keys/sgerrand.rsa.pub" state="absent"
+
+  - name: Alpine | Install GLIBC | Step 10
+    shell: "/usr/glibc-compat/bin/localedef --force --inputfile POSIX --charmap UTF-8 C.UTF-8 || true"
+
+  - name: Alpine | Install GLIBC | Step 11
+    shell: echo "export LANG=C.UTF-8" > /etc/profile.d/locale.sh
+
+  - name: Alpine | Install GLIBC | Step 12
+    shell: apk del glibc-i18n
+
+  - name: Alpine | Install GLIBC | Step 13
+    file: path="/root/.wget-hsts" state="absent"
+
+  - name: Alpine | Install GLIBC | Step 14
+    shell: apk del .build-dependencies
+
+  - name: Alpine | Install GLIBC | Step 15
+    file: path="{{item}}" state="absent"
+    with_items:
+        - "{{ALPINE_GLIBC_BASE_PACKAGE_FILENAME}}"
+        - "{{ALPINE_GLIBC_BIN_PACKAGE_FILENAME}}"
+        - "{{ALPINE_GLIBC_I18N_PACKAGE_FILENAME}}"

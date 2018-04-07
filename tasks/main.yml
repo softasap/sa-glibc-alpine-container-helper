@@ -1,0 +1,3 @@
+---
+# tasks file for sa-glibc-alpine-container-layer
+  - include: tasks_alpine_glibc.yml 

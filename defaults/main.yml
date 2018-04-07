@@ -1,0 +1,5 @@
+---
+# defaults file for sa-glibc-alpine-container-layer
+role_dir: "{{role_path}}"
+glibc_version: "2.27-r0"
+option_validate_certs: false
